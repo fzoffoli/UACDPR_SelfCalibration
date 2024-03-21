@@ -1,0 +1,8 @@
+function obj = ComputeC(obj,Twist)
+
+
+obj.C = [zeros(3)        -m*skew(Twist(4:6))*skew(obj.PtoG_global);
+         zeros(3)         skew(Twist(4:6))*obj.InertiaMatrix];
+
+end
+
