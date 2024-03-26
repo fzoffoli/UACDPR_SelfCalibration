@@ -12,3 +12,9 @@ MyUACDPR=UACDPR(s);
 MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 disturb=zeros(6,1);
 
+% direct dynamics
+dt = 0.001;
+Tmax = 10;
+state_guess = zeros(4,1);
+sol = HuenDiscreteSolver(@(t,x)DynamicsJointSpace(MyUACDPR,t,x),0:dt:Tmax,state_guess);
+x = sol.y;
