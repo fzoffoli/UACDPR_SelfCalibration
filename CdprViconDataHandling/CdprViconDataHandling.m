@@ -13,7 +13,7 @@ clear
 close all
 
 % insert here your filename path, call the two log files with the same name
-filename = "..\Code\Calibration\Calibration of Real System\FreeMotion02";
+filename = "..\UACDPR_SelfCalibration\FreeMotion02";
 
 % importing .txt file
 vicon_data=readmatrix(strcat(filename,'.txt'));
