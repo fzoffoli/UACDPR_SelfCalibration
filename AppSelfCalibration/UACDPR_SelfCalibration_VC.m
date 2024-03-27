@@ -23,6 +23,9 @@ zita_eq_guess = [0;0;1;0;0;0];
 fs_opts = opts.FsolveEqPoses;
 zita_eq = fsolve(@(zita) Static(zita,MyUACDPR,disturb, tau),zita_eq_guess,fs_opts);
 
+% pose estimation
+pose_est = ComputePoseEstimationLengthsInclinometer(st,zita_eq,MyUACDPR);
+
 % integration for guess computation
 flag_integration = 0;
 if flag_integration
@@ -31,20 +34,23 @@ if flag_integration
     sol = HuenDiscreteSolver(@(t,x) classic_dynamics_log(MyUACDPR, t, x, st.tensions, dt), dt:dt:Tmax, [zita_eq; zeros(6,1)]);
     x = sol.y(1:6,:);
 else
-    x = diag(zita_eq)*ones(6,length(st.tensions));
+%     x = diag(zita_eq)*ones(6,length(st.tensions));
+    x = pose_est;
 end
 
-% extract data at vicon frequency
+% % extract data at vicon frequency
 % X = x(:,st_out.vicon_idx);
 % cable_length = st_out.cable_length(:,st_out.vicon_idx);
 % swivel = st_out.swivel(:,st_out.vicon_idx);
 % epsilon = st_out.epsilon(:,st_out.vicon_idx);
+
 % reduce the number of samplings
-% X = X(:,1:10:length(X));
-X = x(:,1:200:length(x));
-cable_length = st.cable_length(:,1:200:length(st.cable_length));
-swivel = st.swivel(:,1:200:length(st.swivel));
-epsilon = st.epsilon(:,1:200:length(st.epsilon)); %If correct -> length became end
+N = 50;
+X = x(:,1:N:end);
+X = X+rand(6,1)*0.5;
+cable_length = st.cable_length(:,1:N:end);
+swivel = st.swivel(:,1:N:end);
+epsilon = st.epsilon(:,1:N:end); %If correct -> length became end
 
 % set zero delta_l and delta_sigma
 delta_swivel = swivel-swivel(:,1);
@@ -68,10 +74,10 @@ for j = 1:4
 	sigma_real_est(j,1) = temp.Trasmission.Pulley{j}.SwivelAngle;
 end
 
-length_real_meas = cable_length(:,1) + st.length_initial_offset;
-
-% error length
-err_length = length_real_est - length_real_meas(1); 
+% errors
+% err_length = length_real_est - length_real_meas(1);
+err_pos = norm(Z(1:3,1)-pose_est(1:3,1))*1000
+err_rot = rad2deg(norm(Z(4:6,1)-pose_est(4:6,1)))
 
 % guess video
 % FF=FilmDrawRobotPippo(x,MyUACDPR);
