@@ -15,7 +15,7 @@ MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 disturb=zeros(6,1);
 
 % load experimental data
-load('..\UACDPR_SelfCalibration\FreeDrive60_4p_parsed.mat');
+load(['..\UACDPR_SelfCalibration\FreeDrive60_continuous_motion2_parsed.mat']);
 
 % compute equilibrium pose
 tau = st.tensions(:,1);
@@ -45,9 +45,9 @@ end
 % epsilon = st_out.epsilon(:,st_out.vicon_idx);
 
 % reduce the number of samplings
-N = 50;
+N = 200;
 X = x(:,1:N:end);
-X = X+rand(6,1)*0.5;
+X = X+[rand(3,1)*0.2; rand(3,1)*3*pi/180];
 cable_length = st.cable_length(:,1:N:end);
 swivel = st.swivel(:,1:N:end);
 epsilon = st.epsilon(:,1:N:end); %If correct -> length became end

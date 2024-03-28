@@ -5,7 +5,7 @@
 % vector, swivel angles vector, tension vector filtered, index of epsilon
 % wrt others vectors, yaw calibration angle.
 
-function [t_r,epsilon_r,cable_length_r, swivel_r, tensions_r, eps_idx, yaw_home] = CdprLogProcessing(log_data, n_cables, cut_perc, show)
+function [t_r,epsilon_r,cable_length_r, swivel_r, tensions_r, eps_idx, yaw_home, length_home] = CdprLogProcessing(log_data, n_cables, cut_perc, show)
 
 % Inclinometer data extraction
 t = log_data.inclinometer_data.timestamp;
@@ -32,11 +32,16 @@ end
 delta = 0.5;
 i = 2;
 yaw_temp(1) = epsilon(3,1);
+length_temp(:,1) = cable_length(:,1); 
 while (epsilon(3,i)-epsilon(3,1)<delta)
     yaw_temp(i) = epsilon(3,i);
+    length_temp(:,i) = cable_length(:,i); 
     i=i+1;
 end
 yaw_home = mean(yaw_temp);
+for i = 1:4
+    length_home(i) = mean(length_temp(i));
+end
 
 % Cutting data with the specified percentage
 epsilon_r=epsilon(:,int64(cut_perc*length(epsilon)):end);
