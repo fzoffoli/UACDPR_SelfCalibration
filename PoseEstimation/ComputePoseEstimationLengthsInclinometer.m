@@ -1,10 +1,15 @@
-function pose_est = ComputePoseEstimationLengthsInclinometer(st,eq_pose,myUACDPR)
+function pose_est = ComputePoseEstimationLengthsInclinometer(st,eq_pose,myUACDPR,var)
 
 % structure picking
 dt = st.t(2)-st.t(1);
 m = length(st.t);
-length_real_meas = st.cable_length + st.length_initial_offset;
-Lengths_meas = length_real_meas;
+if var == 1
+    length_real_meas = st.cable_length + st.length_initial_offset;
+    Lengths_meas = length_real_meas;
+else 
+    Lengths_meas = st.cable_length;
+end
+
 Inc_meas = st.epsilon;
 
 amperr_l = 0.01; %[m]               
@@ -24,6 +29,7 @@ S = WLSMN_lengths_inc_yaw(S,myUACDPR,amperr_l,amperr_rollpitch,amperr_yaw,eps);
 % First solution guess
 S.Equations.guess.x = eps_firsguess*eq_pose;
 S.Equations.guess.P = eye(6);
+
 for i=1:m
     % Algorithm application
     S.Equations.measures = [Lengths_meas(:,i); Inc_meas(:,i)];
