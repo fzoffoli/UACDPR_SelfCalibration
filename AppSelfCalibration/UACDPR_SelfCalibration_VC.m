@@ -24,28 +24,28 @@ zita_eq = fsolve(@(zita) Static(zita,MyUACDPR,disturb, tau),zita_eq_guess,fs_opt
 
 % pose estimation 1
 var = 1;
-% pose_real = ComputePoseEstimationLengthsInclinometer(st,zita_eq,MyUACDPR,var);
+pose_real = ComputePoseEstimationLengthsInclinometer(st,zita_eq,MyUACDPR,var);
 % save("pose_real.mat",'pose_real');
-load('pose_real.mat');
+% load('pose_real.mat');
 
 % err position
-norm_p = 0.15;
-% err_x = 0.15/sqrt(3);
-% err_y = err_x;
-% err_z = err_x;
-err_x = (2*rand -1) * norm_p;
-err_y = (2*rand -1) * sqrt(norm_p^2-err_x^2);
-err_z = sqrt(norm_p^2-err_x^2-err_y^2);
+% norm_p = 0.05;
+err_x = 0.05/sqrt(3);
+err_y = err_x;
+err_z = err_x;
+% err_x = (2*rand -1) * norm_p;
+% err_y = (2*rand -1) * sqrt(norm_p^2-err_x^2);
+% err_z = sqrt(norm_p^2-err_x^2-err_y^2);
 err_p = [err_x err_y err_z]';
 
 % err orientation
-norm_ep = deg2rad(2);
-% err_roll = (2*pi/180)/sqrt(3);
-% err_pitch = err_roll;
-% err_yaw = err_roll;
-err_roll = (2*rand -1) * norm_ep;
-err_pitch = (2*rand -1) * sqrt(norm_ep^2-err_roll^2);
-err_yaw = sqrt(norm_ep^2-err_roll^2-err_pitch^2);
+% norm_ep = deg2rad(2);
+err_roll = (2*pi/180)/sqrt(3);
+err_pitch = err_roll;
+err_yaw = err_roll;
+% err_roll = (2*rand -1) * norm_ep;
+% err_pitch = (2*rand -1) * sqrt(norm_ep^2-err_roll^2);
+% err_yaw = sqrt(norm_ep^2-err_roll^2-err_pitch^2);
 err_ep = [err_roll err_pitch err_yaw]';
 
 pose_with_errors = pose_real(:,1) + [err_p; err_ep];
@@ -64,9 +64,9 @@ lengths_real_err = st.cable_length + length_real_err;
 var = 0;
 temp = st;
 temp.cable_length = lengths_real_err;
-% pose_est = ComputePoseEstimationLengthsInclinometer(temp,zita_eq,MyUACDPR,var);
+pose_est = ComputePoseEstimationLengthsInclinometer(temp,zita_eq,MyUACDPR,var);
 % save("pose_est2.mat", 'pose_est');
-load('pose_est2.mat');
+% load('pose_est2.mat');
 
 
 % integration for guess computation
