@@ -41,7 +41,7 @@ for point = 1:length(pos_errors)
     
     
     % guess computation
-%     tic
+    tic
     pose_with_errors = pose_real + [pos_errors(:,point); zeros(3,1)];
     MyUACDPR_temp = SetPoseAndUpdate0KIN(MyUACDPR, pose_with_errors);
     length_real_err(:,1) = MyUACDPR_temp.CableLengths_;
@@ -66,15 +66,13 @@ for point = 1:length(pos_errors)
     % epsilon = st_out.epsilon(:,st_out.vicon_idx);
 
     % selfcalibration optimization
-%     tic
     ZV_guess = reshape(x,[6*length(x) 1]);
     opts = optimoptions('fminunc','Display', 'iter-detailed',...
         'FunctionTolerance',1e-2,'MaxFunctionEvaluation',1e12,'SpecifyObjectiveGradient',true,'CheckGradient',false,...
         'MaxIterations',1000,'OptimalityTolerance',1e-3,'StepTolerance',1e-6,'UseParallel',true);
     [ZV,fval] = fminunc(@(ZV) WLS(ZV, MyUACDPR, delta_swivel, delta_length, epsilon),ZV_guess,opts);
-    Z = reshape(ZV,[6 length(X)]);
+    Z = reshape(ZV,[6 length(x)]);
     save("Z",'Z');
-%     opt_time=toc
 
     % initial length solution
     load("Z.mat");
@@ -91,11 +89,27 @@ for point = 1:length(pos_errors)
     err_rot(point) = rad2deg(norm(Z(4:6,1)-pose_real(4:6,1)));
     cost_fun(point) = fval;
 
-    point/length(pos_errors);
+    point/length(pos_errors)
+    opt_time = toc
 end
 
 save('convergence_evaluation','err_pos','err_rot','cost_fun');
 %% Plot and graphs
-
+figure()
+subplot(3,1,1)
+plot(cost_fun,'LineWidth',2);
+grid on
+xlabel('f','interpreter','latex');
+ylabel('iterations','interpreter','latex');
+subplot(3,1,2)
+plot(err_pos,'LineWidth',2);
+grid on
+xlabel('\epsilon_p [mm]','interpreter','latex');
+ylabel('iterations','interpreter','latex');
+subplot(3,1,3)
+plot(err_rot,'LineWidth',2);
+grid on
+xlabel('\epsilon_r [°]','interpreter','latex');
+ylabel('iterations','interpreter','latex');
 
 % FilmDrawRobotPippo(x,MyUACDPR);
