@@ -1,19 +1,7 @@
-function pose_est = ComputePoseEstimationLengthsInclinometer(st,eq_pose,myUACDPR,var)
+function pose_est = ComputePoseEstimationLengthsInclinometer(Lengths_meas,Inc_meas,eq_pose,myUACDPR)
 
-% structure picking
-dt = st.t(2)-st.t(1);
-m = length(st.t);
-if var == 1
-    length_real_meas = st.cable_length + st.length_initial_offset;
-    Lengths_meas = length_real_meas;
-else 
-    Lengths_meas = st.cable_length;
-end
-
-Inc_meas = st.epsilon;
-
-amperr_l = 0.01; %[m]               
-amperr_sigma = 3*pi/180; %[rad]           
+%amplitude of errors definition
+amperr_l = 0.01; %[m]     
 amperr_rollpitch = 1*pi/180; %[rad]         
 amperr_yaw = 3*pi/180; %[rad]    
 
@@ -30,6 +18,7 @@ S = WLSMN_lengths_inc_yaw(S,myUACDPR,amperr_l,amperr_rollpitch,amperr_yaw,eps);
 S.Equations.guess.x = eps_firsguess*eq_pose;
 S.Equations.guess.P = eye(6);
 
+m = size(Lengths_meas,2);
 for i=1:m
     % Algorithm application
     S.Equations.measures = [Lengths_meas(:,i); Inc_meas(:,i)];
@@ -47,9 +36,6 @@ for i=1:m
         %             error('Error, pose element equal to NaN')
     end
     Results.cov_Poses(:,i) = sqrt(diag(Ret.P));
-    if i~=1
-        Results.Poses_dt(:,i) = (Results.Poses(:,i)-Results.Poses(:,i-1))./dt;
-    end
     Results.Residual(:,i) = Output.Residual;
     Results.Stepsize(:,i) = Output.Stepsize;
     Results.Iterations(:,i) = Output.Iterations;
