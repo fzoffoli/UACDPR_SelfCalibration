@@ -1,6 +1,6 @@
 function points = GenerateSphericalPoints()
     % Define parameters
-    r = 3:3:15; % Radius values
+    r = flip(3:3:15); % Radius values
     num_r = numel(r);
     num_azimuth = 4; % Number of azimuth angles
     num_polar = 8; % Number of polar angles
