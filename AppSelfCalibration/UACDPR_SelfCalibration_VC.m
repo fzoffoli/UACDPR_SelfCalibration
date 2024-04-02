@@ -96,20 +96,25 @@ end
 save('convergence_evaluation','err_pos','err_rot','cost_fun');
 %% Plot and graphs
 figure()
-subplot(3,1,1)
+subplot(4,1,1)
 plot(cost_fun,'LineWidth',2);
 grid on
-xlabel('f','interpreter','latex');
-ylabel('iterations','interpreter','latex');
-subplot(3,1,2)
+ylabel('$f(Z)$','interpreter','latex');
+xlabel('iterations','interpreter','latex');
+subplot(4,1,2)
 plot(err_pos,'LineWidth',2);
 grid on
-xlabel('\epsilon_p [mm]','interpreter','latex');
-ylabel('iterations','interpreter','latex');
-subplot(3,1,3)
+ylabel('$\epsilon_p$ [mm]','interpreter','latex');
+xlabel('iterations','interpreter','latex');
+subplot(4,1,3)
 plot(err_rot,'LineWidth',2);
 grid on
-xlabel('\epsilon_r [°]','interpreter','latex');
-ylabel('iterations','interpreter','latex');
+ylabel('$\epsilon_r$ [deg]','interpreter','latex');
+xlabel('iterations','interpreter','latex');
+subplot(4,1,4)
+plot(vecnorm(pos_errors),'LineWidth',2);
+grid on
+ylabel('error norm [m]','interpreter','latex');
+xlabel('iterations','interpreter','latex');
 
 % FilmDrawRobotPippo(x,MyUACDPR);
