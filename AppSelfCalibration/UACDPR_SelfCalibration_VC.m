@@ -26,7 +26,6 @@ zita_eq = fsolve(@(zita) Static(zita,MyUACDPR,disturb, tau),zita_eq_guess,fs_opt
 length_real_meas = st.cable_length + st.length_initial_offset;
 pose_real = ComputePoseEstimationLengthsInclinometer(length_real_meas(:,1),st.epsilon(:,1),zita_eq,MyUACDPR);
 
-
 % % extract data at vicon frequency
 % X = x(:,st_out.vicon_idx);
 % cable_length = st_out.cable_length(:,st_out.vicon_idx);
@@ -46,6 +45,7 @@ delta_length = cable_lengths-cable_lengths(:,1);
 
 % convergence evaluation
 position_error = GenerateSphericalPoints();
+position_error(:,end+1) = zeros(3,1);
 for p_num = 1:length(position_error)
 
     % error computation
@@ -84,7 +84,7 @@ for p_num = 1:length(position_error)
     	sigma_real_est(j,1) = temp.Trasmission.Pulley{j}.SwivelAngle;
     end
 
-    % errors
+    % selfcalibration results
     % err_length = length_real_est - length_real_meas(1);
     err_pos(p_num) = norm(Z(1:3,1)-pose_real(1:3,1))*1000;
     err_rot(p_num) = rad2deg(norm(Z(4:6,1)-pose_real(4:6,1)));
