@@ -94,7 +94,7 @@ for p_num = 1:length(position_error)
     simulation_percentage=p_num/length(position_error)
 end
 
-save('selfcalib_convergence_analysis_10cm.mat','err_rot','err_pos',"cost_fun",'initial_pose');
+save('selfcalib_convergence_analysis_40cm_4a_8p.mat','err_rot','err_pos',"cost_fun",'initial_pose','position_error');
 %% Plots and graphs
 figure()
 subplot(4,1,1)
