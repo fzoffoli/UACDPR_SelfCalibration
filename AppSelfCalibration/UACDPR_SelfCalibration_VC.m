@@ -71,8 +71,8 @@ for p_num = 1:length(position_error)
     % selfcalibration optimization
     ZV_guess = reshape(x,[6*length(x) 1]);
     opts = optimoptions('fminunc','Display', 'iter-detailed',...
-        'FunctionTolerance',1e-2,'MaxFunctionEvaluation',1e12,'SpecifyObjectiveGradient',true,'CheckGradient',false,...
-        'MaxIterations',1000,'OptimalityTolerance',1e-3,'StepTolerance',1e-6,'UseParallel',true);
+        'FunctionTolerance',1e-3,'MaxFunctionEvaluation',1e12,'SpecifyObjectiveGradient',true,'CheckGradient',false,...
+        'MaxIterations',1000,'OptimalityTolerance',1e-4,'StepTolerance',1e-6,'UseParallel',true);
     [ZV, fval] = fminunc(@(ZV) WLS(ZV, MyUACDPR, delta_swivel, delta_length, epsilon),ZV_guess,opts);
     Z = reshape(ZV,[6 length(x)]);
 
@@ -94,7 +94,7 @@ for p_num = 1:length(position_error)
     simulation_percentage=p_num/length(position_error)
 end
 
-save('selfcalib_convergence_analysis.mat','err_rot','err_pos',"cost_fun",'initial_pose');
+save('selfcalib_convergence_analysis_10cm.mat','err_rot','err_pos',"cost_fun",'initial_pose');
 %% Plots and graphs
 figure()
 subplot(4,1,1)
