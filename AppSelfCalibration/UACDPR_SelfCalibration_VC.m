@@ -98,25 +98,25 @@ save('selfcalib_convergence_analysis_40cm_4a_8p.mat','err_rot','err_pos',"cost_f
 %% Plots and graphs
 figure()
 subplot(4,1,1)
-grid on
 plot(cost_fun,'LineWidth',2);
+grid on
 xlabel('iterations','Interpreter','latex')
-ylabel('f(Z)','Interpreter','latex')
+ylabel('$f(\mathbf{Z}$)','Interpreter','latex')
 subplot(4,1,2)
-grid on
 plot(err_pos,'LineWidth',2);
+grid on
 xlabel('iterations','Interpreter','latex')
-ylabel('$\epsilon_p$ [mm]','Interpreter','latex')
+ylabel('$\mathbf{\epsilon}_p$ [mm]','Interpreter','latex')
 subplot(4,1,3)
-grid on
 plot(err_rot,'LineWidth',2);
-xlabel('iterations','Interpreter','latex')
-ylabel('$\epsilon_r$ [deg]','Interpreter','latex')
-subplot(4,1,4)
 grid on
-plot(vecnorm(position_error),'LineWidth',2);
 xlabel('iterations','Interpreter','latex')
-ylabel('error norm [m]','Interpreter','latex')
+ylabel('$\mathbf{\epsilon}_r$ [deg]','Interpreter','latex')
+subplot(4,1,4)
+plot(vecnorm(position_error),'LineWidth',2);
+grid on
+xlabel('iterations','Interpreter','latex')
+ylabel('$\mathbf{e}_P$ [m]','Interpreter','latex')
 
 
 % guess video
