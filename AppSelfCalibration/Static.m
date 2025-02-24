@@ -1,7 +1,7 @@
 function [F]=Static(pose,obj,Disturb,tau)
 % function [F,Jac]=Static(obj,disturb,tau)
-    obj=ComputeWrench(obj,Disturb);
-    obj=SetPoseAndUpdate0KIN(obj,pose);
+    obj = ComputeWrench(obj,Disturb);
+    obj = SetPoseAndUpdate0KIN(obj,pose);
     obj = ComputeJaclOrtPar(obj);
     
     %Set Function Objective;        
