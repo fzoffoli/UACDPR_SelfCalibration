@@ -7,7 +7,8 @@ clear
 close all
 
 % load config file
-load('UACDPR_LAB3.mat');
+load('IRMA4U_Mar25.mat');
+% load('UACDPR_LAB3.mat');
 opts = Utilities;
 s.DependencyVect=[1,1,1,0,0,1];
 MyUACDPR=UACDPR(s);
@@ -15,6 +16,7 @@ n = double(MyUACDPR.CablesNumber);
 P = MyUACDPR.PermutMatrix; 
 MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 disturb=zeros(6,1);
+
 
 % Optimal measurement pose set computation
 %         Z_ideal = ga(@(Z)FitnessFunLengthSwivelAHRS(cdpr_variables,cdpr_parameters,Z,k,method),...
