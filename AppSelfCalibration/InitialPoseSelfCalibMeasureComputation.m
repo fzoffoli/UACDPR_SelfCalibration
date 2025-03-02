@@ -1,7 +1,7 @@
 %%% This script computes the optimal measurement pose set for the initial
 %%% pose self-calibration of UACDPRs and the control inputs for the winches
 %%% to reach (ideally) those poses. The control inputs are stored as csv
-%%% files to be read from the cdpr.
+%%% files to be read from the cdpr software.
 
 clear
 close all
@@ -15,8 +15,6 @@ n = double(MyUACDPR.CablesNumber);
 P = MyUACDPR.PermutMatrix; 
 MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 disturb=zeros(6,1);
-
-
 
 % Optimal measurement pose set computation
 %         Z_ideal = ga(@(Z)FitnessFunLengthSwivelAHRS(cdpr_variables,cdpr_parameters,Z,k,method),...
