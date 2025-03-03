@@ -169,6 +169,9 @@ methods
         
 %         Sum wrenches contributions
         obj = ComputeWrench(obj,Disturb)
+
+%         Compute only gravity wrench
+        obj = ComputeGravityWrench(obj,Disturb)
         
 %         Compute Active/Geometric Stiffness
         obj = ComputeActiveStiffness(obj,ExternalForces)
