@@ -17,6 +17,7 @@ P = MyUACDPR.PermutMatrix;
 MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 disturb=zeros(6,1);
 
+Z_bounds = [-0.4 0.4; -0.4 0.4; 0.4 1.4; -pi/4 pi/4; -pi/4 pi/4; 0 0];
 
 % Optimal measurement pose set computation
 %         Z_ideal = ga(@(Z)FitnessFunLengthSwivelAHRS(cdpr_variables,cdpr_parameters,Z,k,method),...
