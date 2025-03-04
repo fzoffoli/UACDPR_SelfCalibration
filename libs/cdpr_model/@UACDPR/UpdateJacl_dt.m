@@ -19,4 +19,3 @@ function UACDPR = UpdateJacl_dt(UACDPR,Twist,LocalAttachPoints,GeomJac,Pulley,Ca
 %     UACDPR.AnalJac.Cables_dt=D_dt.'*GeomJac.Cables+D.'*UACDPR.GeomJac.Cables_dt;
 UACDPR.AnalJac.Cables_dt=GeomJac.Cables*D_dt+UACDPR.GeomJac.Cables_dt*D;
 end
-
