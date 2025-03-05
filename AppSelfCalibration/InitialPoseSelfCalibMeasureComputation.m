@@ -17,15 +17,15 @@ MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 n_d = length(MyUACDPR.DependencyVect);
 
 % set workspace translational bounds
-pose_bounds = [-0.4 0.4; -0.4 0.4; 0.4 1.4; -pi/2 pi/2; -pi/2 pi/2; -pi/2 pi/2];
+pose_bounds = [-0.3 0.3; -0.3 0.3; 0.4 1; -pi/2 pi/2; -pi/2 pi/2; -pi/2 pi/2];
 % k = 10;     % number of measurements (comprising the initial pose)
 % Z_bounds = repmat(pose_bounds,k,1);
 
 % assign control disturb values
-control_disturb.position_bias = 0;                                      %[m]
-control_disturb.orientation_bias = 0;                                   %[rad]
-control_disturb.position_noise = 0;                                     %[m]
-control_disturb.orientation_noise = 0;                                  %[rad]
+control_disturb.position_bias = 0.04;                                   %[m]
+control_disturb.orientation_bias = deg2rad(2);                          %[rad]
+control_disturb.position_noise = 0.02;                                  %[m]
+control_disturb.orientation_noise = deg2rad(1);                         %[rad]
 % assign sensor disturb values
 sensor_disturb.swivel_noise = deg2rad(1);                               %[rad]
 sensor_disturb.length_noise = 0.01;                                     %[m]
@@ -42,7 +42,7 @@ sensor_disturb.loadcell_noise = 10;                                     %[N]
 %     [],opts_ga);
 
 % measurement pose set computation
-grid_axes = [3 3 3];
+grid_axes = [2 2 2];
 [Z_ideal,k] = GenerateConfigPosesBrutal(MyUACDPR,grid_axes,pose_bounds,[20 400]);
 
 out.opt_meas_config = reshape(Z_ideal,[n_d k]);
@@ -62,7 +62,7 @@ X_guess = Z_ideal;
 
 % solve self-calibration problem
 opts = optimoptions('fmincon','FunctionTolerance',1e-10,'OptimalityTolerance',1e-8, ...
-    'StepTolerance',1e-10,'UseParallel',true,'MaxFunctionEvaluations',1e+5,'MaxIterations',1e+5);
+    'StepTolerance',1e-10,'UseParallel',true,'MaxFunctionEvaluations',1e+6,'MaxIterations',1e+5);
 tic
 X_sol = fmincon(@(X)CostFunLoadcellLengthSwivelAHRS(MyUACDPR,X,k-1,loadcell_meas,delta_length_meas,...
         delta_swivel_meas,roll_meas,pitch_meas,delta_yaw_meas,sensor_disturb),X_guess,[],[],[],[],[],[],[],opts);
