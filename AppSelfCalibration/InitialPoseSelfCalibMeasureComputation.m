@@ -8,18 +8,46 @@ close all
 
 % load config file
 load('IRMA4U_Mar25.mat');
-% load('UACDPR_LAB3.mat');
-opts = Utilities;
+utils = Utilities;
 s.DependencyVect=[1,1,1,0,0,1];
-MyUACDPR=UACDPR(s);
-n = double(MyUACDPR.CablesNumber);
-P = MyUACDPR.PermutMatrix; 
+
+% istantiate robot object
+MyUACDPR=UACDPR(s); 
 MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
-disturb=zeros(6,1);
+n_d = length(MyUACDPR.DependencyVect);
 
-Z_bounds = [-0.4 0.4; -0.4 0.4; 0.4 1.4; -pi/4 pi/4; -pi/4 pi/4; 0 0];
+% set workspace translational bounds
+pose_bounds = [-0.4 0.4; -0.4 0.4; 0.4 1.4; -pi/2 pi/2; -pi/2 pi/2; -pi/2 pi/2];
+k = 10;     % number of measurements (comprising the initial pose)
+Z_bounds = repmat(pose_bounds,k,1);
 
-% Optimal measurement pose set computation
-%         Z_ideal = ga(@(Z)FitnessFunLengthSwivelAHRS(cdpr_variables,cdpr_parameters,Z,k,method),...
-%             k*cdpr_parameters.pose_dim,[],[],[],[],Z_bounds(:,1),Z_bounds(:,2),...
-%             @(Z)NonlconWorkspaceBelonging(cdpr_variables,cdpr_parameters,Z,k,ws_info),opts_ga);
+% assign control disturb values
+control_disturb.position_bias = 0;                                      %[m]
+control_disturb.orientation_bias = 0;                                   %[rad]
+control_disturb.position_noise = 0;                                     %[m]
+control_disturb.orientation_noise = 0;                                  %[rad]
+% assign sensor disturb values
+sensor_disturb.swivel_noise = deg2rad(1);                               %[rad]
+sensor_disturb.length_noise = 0.01;                                     %[m]
+sensor_disturb.AHRS_noise = deg2rad(2);                                 %[rad]
+sensor_disturb.loadcell_noise = 10;                                     %[N]
+
+% optimal measurement pose set computation
+% opts_ga = optimoptions('ga','UseParallel',true,'Display','iter');
+% Z_ideal = ga(@(Z)FitnessFunLoadcellLengthSwivelAHRS(MyUACDPR,Z,k,sensor_disturb),...
+%     k*n_d,[],[],[],[],Z_bounds(:,1),Z_bounds(:,2),...
+%     @(Z)NonlconWorkspaceBelonging(MyUACDPR,Z,k,[20 400]),opts_ga);
+% Z_ideal = ga(@(Z)FitnessFunLoadcellLengthSwivelAHRS(MyUACDPR,Z,k,sensor_disturb),...
+%     k*n_d,[],[],[],[],Z_bounds(:,1),Z_bounds(:,2),...
+%     [],opts_ga);
+
+% measurement pose set computation
+grid_axes = [2 2 2];
+[Z_ideal, tau_ideal,k] = GenerateConfigPosesBrutal(MyUACDPR,grid_axes,pose_bounds,[20 400]);
+
+out.opt_meas_config = reshape(Z_ideal,[n_d k]);
+out.n_config = k;
+for i = 1:k
+    out.static_tensions(:,i) = CalcInverseStaticsAndGradient(MyUACDPR,out.opt_meas_config(:,i));
+end
+
