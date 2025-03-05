@@ -18,8 +18,8 @@ n_d = length(MyUACDPR.DependencyVect);
 
 % set workspace translational bounds
 pose_bounds = [-0.4 0.4; -0.4 0.4; 0.4 1.4; -pi/2 pi/2; -pi/2 pi/2; -pi/2 pi/2];
-k = 10;     % number of measurements (comprising the initial pose)
-Z_bounds = repmat(pose_bounds,k,1);
+% k = 10;     % number of measurements (comprising the initial pose)
+% Z_bounds = repmat(pose_bounds,k,1);
 
 % assign control disturb values
 control_disturb.position_bias = 0;                                      %[m]
@@ -42,12 +42,35 @@ sensor_disturb.loadcell_noise = 10;                                     %[N]
 %     [],opts_ga);
 
 % measurement pose set computation
-grid_axes = [2 2 2];
-[Z_ideal, tau_ideal,k] = GenerateConfigPosesBrutal(MyUACDPR,grid_axes,pose_bounds,[20 400]);
+grid_axes = [3 3 3];
+[Z_ideal,k] = GenerateConfigPosesBrutal(MyUACDPR,grid_axes,pose_bounds,[20 400]);
 
 out.opt_meas_config = reshape(Z_ideal,[n_d k]);
 out.n_config = k;
 for i = 1:k
     out.static_tensions(:,i) = CalcInverseStaticsAndGradient(MyUACDPR,out.opt_meas_config(:,i));
 end
+save('sc_control_target.mat',"out");
 
+% IK simulation
+Z_ideal = reshape(Z_ideal,[n_d*k 1]);
+[X_real, loadcell_meas, delta_length_meas, delta_swivel_meas, delta_yaw_meas, roll_meas, pitch_meas] = ...
+        ControlSimLengthLoadcellSwivelAHRS(MyUACDPR,Z_ideal,k,control_disturb,sensor_disturb);
+
+% guess generation
+X_guess = Z_ideal;
+
+% solve self-calibration problem
+opts = optimoptions('fmincon','FunctionTolerance',1e-10,'OptimalityTolerance',1e-8, ...
+    'StepTolerance',1e-10,'UseParallel',true,'MaxFunctionEvaluations',1e+5,'MaxIterations',1e+5);
+tic
+X_sol = fmincon(@(X)CostFunLoadcellLengthSwivelAHRS(MyUACDPR,X,k-1,loadcell_meas,delta_length_meas,...
+        delta_swivel_meas,roll_meas,pitch_meas,delta_yaw_meas,sensor_disturb),X_guess,[],[],[],[],[],[],[],opts);
+self_calib_comp_time=toc;
+
+InitialPositionErrorNorm = norm(X_real(1:3)-X_sol(1:3));
+MyUACDPR=SetPoseAndUpdate0KIN(MyUACDPR,X_real(1:6));
+angle_init_real = acos((MyUACDPR.EndEffector.RotMatrix(1,1)+MyUACDPR.EndEffector.RotMatrix(2,2)+MyUACDPR.EndEffector.RotMatrix(3,3)-1)/2);
+MyUACDPR=SetPoseAndUpdate0KIN(MyUACDPR,X_sol(1:6));
+angle_init_sol = acos((MyUACDPR.EndEffector.RotMatrix(1,1)+MyUACDPR.EndEffector.RotMatrix(2,2)+MyUACDPR.EndEffector.RotMatrix(3,3)-1)/2);
+InitialOrientationError = rad2deg(abs(angle_init_sol-angle_init_real));
