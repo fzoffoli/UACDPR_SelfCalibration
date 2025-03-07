@@ -17,7 +17,7 @@ MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 n_d = length(MyUACDPR.DependencyVect);
 
 % set workspace translational bounds
-pose_bounds = [-0.3 0.3; -0.3 0.3; 0.4 1; -pi/2 pi/2; -pi/2 pi/2; -pi/2 pi/2];
+pose_bounds = [-0.4 0.4; -0.4 0.4; 0.6 1; -pi/2 pi/2; -pi/2 pi/2; -pi/2 pi/2];
 % k = 10;     % number of measurements (comprising the initial pose)
 % Z_bounds = repmat(pose_bounds,k,1);
 
@@ -42,7 +42,7 @@ sensor_disturb.loadcell_noise = 10;                                     %[N]
 %     [],opts_ga);
 
 % measurement pose set computation
-grid_axes = [2 2 2];
+grid_axes = [3 3 3];
 [Z_ideal,k] = GenerateConfigPosesBrutal(MyUACDPR,grid_axes,pose_bounds,[20 400]);
 
 out.opt_meas_config = reshape(Z_ideal,[n_d k]);
@@ -51,8 +51,9 @@ for i = 1:k
     out.static_tensions(:,i) = CalcInverseStaticsAndGradient(MyUACDPR,out.opt_meas_config(:,i));
 end
 save('sc_control_target.mat',"out");
+writematrix(out.static_tensions,strcat('tension_target.csv'));
 
-% IK simulation
+%% IK simulation
 Z_ideal = reshape(Z_ideal,[n_d*k 1]);
 [X_real, loadcell_meas, delta_length_meas, delta_swivel_meas, delta_yaw_meas, roll_meas, pitch_meas] = ...
         ControlSimLengthLoadcellSwivelAHRS(MyUACDPR,Z_ideal,k,control_disturb,sensor_disturb);
