@@ -2,12 +2,12 @@
 %%% cdpr_alars app and from the output .txt file from vicon, in case a
 %%% standard allocation of the markers is used to construc the object
 %%% platform. The correct procedure for data acquisition is described in
-%%% Vicon-Inclinometer_Calibration (GitHub IRMA-LAB). The tensions from the
-%%% loadcells are filtered and data from the inclinometer is resampled, due
-%%% to problems of real-time communication (update mar 2024).The inclinometer 
-%%% angles are then brought to the vicon reference frame, and the temporal 
-%%% vector of the robot's data is shifted to compare the result of the two
-%%% acquisitions.
+%%% Vicon-Inclinometer_Calibration. 
+%%% The tensions from the loadcells are filtered and data from the 
+%%% inclinometer is resampled, due to problems of real-time communication 
+%%% (update mar 2024).The inclinometer angles are then brought to the 
+%%% vicon reference frame, and the temporal vector of the robot's data is
+%%% shifted to compare the result of the two acquisitions.
 
 clear
 close all
@@ -29,7 +29,8 @@ dt_v = 1/100; % insert vicon sampling period [s]
 show = 1;           % flag to show data
 cut_perc = 0.25;    % initial cutting percentage
 n_cables = 4;       % insert number of cables
-[t_r,epsilon_r,cable_length_r, swivel_r, tensions_r, eps_idx, yaw_home] = CdprLogProcessing(log_data, n_cables, cut_perc, show);
+[t_r,epsilon_r,cable_length_r, swivel_r, tensions_r, eps_idx, yaw_home] = ...
+    CdprLogProcessing(log_data, n_cables, cut_perc, show);
 
 st.t_r = t_r;
 st.epsilon_r = epsilon_r;

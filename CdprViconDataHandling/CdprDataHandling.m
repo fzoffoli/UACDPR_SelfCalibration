@@ -1,35 +1,29 @@
 %%% This script allows to extract data from the output .log file from the
-%%% cdpr_alars app and from the output .txt file from vicon, in case a
-%%% standard allocation of the markers is used to construc the object
-%%% platform. The correct procedure for data acquisition is described in
-%%% Vicon-Inclinometer_Calibration (GitHub IRMA-LAB). The tensions from the
-%%% loadcells are filtered and data from the inclinometer is resampled, due
-%%% to problems of real-time communication (update mar 2024).The inclinometer 
-%%% angles are then brought to the vicon reference frame, and the temporal 
-%%% vector of the robot's data is shifted to compare the result of the two
-%%% acquisitions.
+%%% cdpr_alars app. The tensions from the loadcells are filtered and data
+%%% from the inclinometer is resampled since its min sampling freq is 400Hz
 
 clear
 close all
 
 % insert here your filename path, call the two log files with the same name
-filename = "..\UACDPR_SelfCalibration\FreeDrive60_4p";
+filename = "sc_8_medium_a";
 
 % parsing files
-% log_data = parseCableRobotLogFile(strcat(filename,'.log'));
-% save('log_data',"log_data");
-load("log_data.mat");
+if isfile("log_data.mat")
+    load("log_data.mat")
+else
+    log_data = parseCableRobotLogFile(strcat(filename,'.log'));
+    save('log_data',"log_data");
+end
 
 %% robot's data processing
-show = 1;           % flag to show data
 cut_perc = 0.15;    % initial cutting percentage
 n_cables = 4;       % insert number of cables
-[t_r,epsilon_r,cable_length_r, swivel_r, tensions_r, eps_idx, yaw_home, length_home] = CdprLogProcessing(log_data, n_cables, cut_perc, show);
-length_home_json = [2.27617431794265; 2.27617431794265; 2.27617431794265; 2.27617431794265];        %[m] initial lengths json
-swivel_home_json = [0.567301627306439; 0.567301627306439; 0.567301627306439; 0.567301627306439];    %[rad]
-length_initial_offset = length_home_json - length_home';
+homing_val.lengths = [2.27254824660233; 2.27300821626030; 2.27300821626030; 2.27254824660233];          %[m] initial lengths json
+homing_val.swivels = [0.568104732474427; -0.568104732474427; 0.568104732474427; -0.568104732474427];    %[rad]
+[t_r,epsilon_r,cable_length_r,swivel_r,tensions_r,target_tensions_r] = CdprLogProcessing(log_data, n_cables, homing_val);
 
-%% change inclinometer reference frame
+%% change inclinometer reference frame TODO: CORRECT FROM HERE!
 load("RotMatCalib03.mat")   % load structure from calibration
 epsilon_r_filt = epsilon_r(:,eps_idx)*pi/180;
 epsilon_rv = zeros(size(epsilon_r_filt));
