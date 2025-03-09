@@ -4,122 +4,87 @@
 clear
 close all
 
-InitialPoseSelfCalibMeasureComputation
-
 % load config file
 load('IRMA4U_Mar25.mat');
 opts = Utilities;
 s.DependencyVect=[1,1,1,0,0,1];
 MyUACDPR=UACDPR(s);
 n = double(MyUACDPR.CablesNumber);
+n_d = length(MyUACDPR.DependencyVect);
 P = MyUACDPR.PermutMatrix; 
 MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 disturb=zeros(6,1);
 
-% load experimental data
-load('..\UACDPR_SelfCalibration\FreeDrive60_continuous_motion2_parsed.mat');
-% compute equilibrium pose
-tau = st.tensions(:,1);
-zita_eq_guess = [0;0;1;0;0;0];
-fs_opts = opts.FsolveEqPoses;
-zita_eq = fsolve(@(zita) Static(zita,MyUACDPR,disturb, tau),zita_eq_guess,fs_opts);
-
-% real pose estimation
-length_real_meas = st.cable_length + st.length_initial_offset;
-pose_real = ComputePoseEstimationLengthsInclinometer(length_real_meas(:,1),st.epsilon(:,1),zita_eq,MyUACDPR);
-
-% % extract data at vicon frequency
-% X = x(:,st_out.vicon_idx);
-% cable_length = st_out.cable_length(:,st_out.vicon_idx);
-% swivel = st_out.swivel(:,st_out.vicon_idx);
-% epsilon = st_out.epsilon(:,st_out.vicon_idx);
-
-% reduce the number of samplings
-N = 500;
-swivel = st.swivel(:,1:N:end);
-epsilon = st.epsilon(:,1:N:end);
-cable_lengths = st.cable_length(:,1:N:end);
-
-% set zero delta_l and delta_sigma
-delta_swivel = swivel-swivel(:,1);
-delta_length = cable_lengths-cable_lengths(:,1);
-
-
-% convergence evaluation
-position_error = GenerateSphericalPoints();
-position_error(:,end+1) = zeros(3,1);
-for p_num = 1:length(position_error)
-
-    % error computation
-    pose_with_errors = pose_real + [position_error(:,p_num); zeros(3,1)];
-    MyUACDPR_temp = SetPoseAndUpdate0KIN(MyUACDPR, pose_with_errors);
-    length_real_err = MyUACDPR_temp.CableLengths_;
-    lengths_real_err = delta_length + length_real_err;
-
-    % pose estimation
-    pose_est = ComputePoseEstimationLengthsInclinometer(lengths_real_err,epsilon,zita_eq,MyUACDPR);
-
-    % integration for guess computation
-    flag_integration = 0;
-    if flag_integration
-        dt = st.t(2)-st.t(1);
-        Tmax=length(st.tensions)*dt;
-        sol = HuenDiscreteSolver(@(t,x) classic_dynamics_log(MyUACDPR, t, x, st.tensions, dt), dt:dt:Tmax, [zita_eq; zeros(6,1)]);
-        x = sol.y(1:6,:);
+% load experimental data and choose the calibration poses
+load('..\UACDPR_SelfCalibration\sc_8_medium_a_parsed.mat');
+f1 = figure(1);
+plot(st.tensions(1,:));
+hold on
+plot(st.target_tensions(1,:));
+grid on
+legend('\tau_{meas}','\tau_{setpoint}');
+meas_cnt = 1;
+while(1)
+    arg = input("Select measurement pose index: ");
+    if strcmp(arg,"quit")
+        break
     else
-        x = pose_est;
+        meas_idx(meas_cnt) = arg;
+        meas_cnt = meas_cnt+1;
     end
-
-    % selfcalibration optimization
-    ZV_guess = reshape(x,[6*length(x) 1]);
-    opts = optimoptions('fminunc','Display', 'iter-detailed',...
-        'FunctionTolerance',1e-3,'MaxFunctionEvaluation',1e12,'SpecifyObjectiveGradient',true,'CheckGradient',false,...
-        'MaxIterations',1000,'OptimalityTolerance',1e-4,'StepTolerance',1e-6,'UseParallel',true);
-    [ZV, fval] = fminunc(@(ZV) WLS(ZV, MyUACDPR, delta_swivel, delta_length, epsilon),ZV_guess,opts);
-    Z = reshape(ZV,[6 length(x)]);
-
-    % initial length solution
-    temp = SetPoseAndUpdate0KIN(MyUACDPR,Z(:,1));
-    length_real_est = temp.CableLengths_;
-    sigma_real_est = zeros(4,1);
-    for j = 1:4
-    	sigma_real_est(j,1) = temp.Trasmission.Pulley{j}.SwivelAngle;
-    end
-
-    % selfcalibration results
-    % err_length = length_real_est - length_real_meas(1);
-    err_pos(p_num) = norm(Z(1:3,1)-pose_real(1:3,1))*1000;
-    err_rot(p_num) = rad2deg(norm(Z(4:6,1)-pose_real(4:6,1)));
-    cost_fun(p_num) = fval;
-    initial_pose(:,p_num) = Z(:,1);
-
-    simulation_percentage=p_num/length(position_error)
 end
+loadcell_meas = st.tensions(:,meas_idx);
+cable_length_meas = st.cable_length(:,meas_idx);
+swivel_meas = st.swivel(:,meas_idx);
+epsilon_meas = st.epsilon(:,meas_idx);
 
-save('selfcalib_convergence_analysis_40cm_4a_8p.mat','err_rot','err_pos',"cost_fun",'initial_pose','position_error');
-%% Plots and graphs
-figure()
-subplot(4,1,1)
-plot(cost_fun,'LineWidth',2);
-grid on
-xlabel('iterations','Interpreter','latex')
-ylabel('$f(\mathbf{Z}$)','Interpreter','latex')
-subplot(4,1,2)
-plot(err_pos,'LineWidth',2);
-grid on
-xlabel('iterations','Interpreter','latex')
-ylabel('$\mathbf{\epsilon}_p$ [mm]','Interpreter','latex')
-subplot(4,1,3)
-plot(err_rot,'LineWidth',2);
-grid on
-xlabel('iterations','Interpreter','latex')
-ylabel('$\mathbf{\epsilon}_r$ [deg]','Interpreter','latex')
-subplot(4,1,4)
-plot(vecnorm(position_error),'LineWidth',2);
-grid on
-xlabel('iterations','Interpreter','latex')
-ylabel('$\mathbf{e}_P$ [m]','Interpreter','latex')
+% compute initial eq pose guess
+load("sc_control_target_8.mat");
+tau_zero = loadcell_meas(:,1);
+zita_eq_guess = out.opt_meas_config(:,1);
+MyUACDPR = SetPoseAndUpdate0KIN(MyUACDPR,zita_eq_guess);
+fs_opts = opts.FsolveEqPoses;
+sol_zeta_lengths = fsolve(@(zita_lengths)DGSP(MyUACDPR,zita_lengths,tau_zero), ...
+    [zita_eq_guess;MyUACDPR.Trasmission.CableLengths],fs_opts);
+zeta_0_guess = sol_zeta_lengths(1:6);
+length_0_guess = sol_zeta_lengths(7:end);
 
-
-% guess video
+% compute real initial pose (through Gabaldo's pose estimation)
+zeta_0_real = ComputePoseEstimationLengthsInclinometer(cable_length_meas(:,1),epsilon_meas(:,1),zita_eq_guess,MyUACDPR);
+% % uncomment for pose estimation check
+% x = zeros(6,length(st.t));
+% for i = 1:length(st.t)
+%     x(:,i) = ComputePoseEstimationLengthsInclinometer(st.cable_length(:,i),st.epsilon(:,i),zita_eq_guess,MyUACDPR);
+%     zita_eq_guess = x(:,i);
+% end
 % FilmDrawRobotPippo(x,MyUACDPR);
+
+% Self-Calibration optimization algorithm
+sensor_disturb.swivel_noise = deg2rad(1);                               %[rad]
+sensor_disturb.length_noise = 0.01;                                     %[m]
+sensor_disturb.AHRS_noise = deg2rad(2);                                 %[rad]
+sensor_disturb.loadcell_noise = 10;                                     %[N]
+
+delta_swivel_meas = swivel_meas-swivel_meas(:,1);
+delta_length_meas = cable_length_meas-cable_length_meas(:,1);
+roll_meas = epsilon_meas(1,:);
+pitch_meas = epsilon_meas(2,:);
+delta_yaw_meas = epsilon_meas(3,:)-epsilon_meas(3,1);
+
+X_guess = out.opt_meas_config;
+k = length(X_guess);
+X_guess = reshape(X_guess,[k*n_d 1]);
+
+opts = optimoptions('fmincon','FunctionTolerance',1e-10,'OptimalityTolerance',1e-8, ...
+    'StepTolerance',1e-10,'UseParallel',true,'MaxFunctionEvaluations',1e+6,'MaxIterations',1e+5);
+tic
+X_sol = fmincon(@(X)CostFunLoadcellLengthSwivelAHRS(MyUACDPR,X,k-1,loadcell_meas,delta_length_meas,...
+        delta_swivel_meas,roll_meas,pitch_meas,delta_yaw_meas,sensor_disturb),X_guess,[],[],[],[],[],[],[],opts);
+self_calib_comp_time=toc;
+
+InitialPositionErrorNorm = norm(zeta_0_real(1:3)-X_sol(1:3));
+MyUACDPR=SetPoseAndUpdate0KIN(MyUACDPR,zeta_0_real(1:6));
+angle_init_real = acos((MyUACDPR.EndEffector.RotMatrix(1,1)+MyUACDPR.EndEffector.RotMatrix(2,2)+MyUACDPR.EndEffector.RotMatrix(3,3)-1)/2);
+MyUACDPR=SetPoseAndUpdate0KIN(MyUACDPR,X_sol(1:6));
+angle_init_sol = acos((MyUACDPR.EndEffector.RotMatrix(1,1)+MyUACDPR.EndEffector.RotMatrix(2,2)+MyUACDPR.EndEffector.RotMatrix(3,3)-1)/2);
+InitialOrientationError = rad2deg(abs(angle_init_sol-angle_init_real));

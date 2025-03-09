@@ -12,6 +12,7 @@ t = log_data.inclinometer_data.timestamp;
 epsilon = [log_data.inclinometer_data.values.roll;        
 log_data.inclinometer_data.values.pitch;
 log_data.inclinometer_data.values.yaw];
+epsilon = epsilon.*pi/180; 
 
 % Actuators data extraction
 invalid_data = mod(length(log_data.actuator_status.timestamp),n_cables);
