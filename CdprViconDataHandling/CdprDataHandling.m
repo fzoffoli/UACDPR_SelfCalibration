@@ -6,15 +6,10 @@ clear
 close all
 
 % insert here your filename path, call the two log files with the same name
-filename = "sc_8_medium_a";
+filename = "sc_27_medium_a";
 
 % parsing files
-if isfile("log_data.mat")
-    load("log_data.mat")
-else
-    log_data = parseCableRobotLogFile(strcat(filename,'.log'));
-    save('log_data',"log_data");
-end
+log_data = parseCableRobotLogFile(strcat(filename,'.log'));
 
 % robot's data processing
 n_cables = 4;
