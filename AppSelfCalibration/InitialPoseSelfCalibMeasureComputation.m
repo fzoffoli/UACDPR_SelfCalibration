@@ -42,7 +42,8 @@ sensor_disturb.loadcell_noise = 10;                                     %[N]
 %     [],opts_ga);
 
 % measurement pose set computation
-grid_axes = [3 3 3];
+% grid_axes = [3 3 3];
+grid_axes = [2 2 2];
 [Z_ideal,k] = GenerateConfigPosesBrutal(MyUACDPR,grid_axes,pose_bounds,[20 400]);
 
 out.opt_meas_config = reshape(Z_ideal,[n_d k]);

@@ -2,15 +2,16 @@ function [Z,k] = GenerateConfigPosesBrutal(MyUACDPR,grid_axis,pose_bounds,force_
 %GENERATECONFIGPOSESBRUTAL compute a pose set with equally distributed
 %poses within the position bounds given as input.
 
-x = linspace(pose_bounds(1,1),pose_bounds(1,2),grid_axis(1));
-y = linspace(pose_bounds(2,1),pose_bounds(2,2),grid_axis(2));
-z = linspace(pose_bounds(3,1),pose_bounds(3,2),grid_axis(3));
+x = linspace(pose_bounds(1,2),pose_bounds(1,1),grid_axis(1));
+y = linspace(pose_bounds(2,2),pose_bounds(2,1),grid_axis(2));
+z = linspace(pose_bounds(3,2),pose_bounds(3,1),grid_axis(3));
 
 Z = zeros(6,prod(grid_axis));
 cnt = 1;
-for i=1:grid_axis(1)
+
+for k=1:grid_axis(3)
     for j=1:grid_axis(2)
-        for k=1:grid_axis(3)
+        for i=1:grid_axis(1)
             
             igsp_opts = optimoptions('fmincon','Display','none');
             tau_eps=fmincon(@(tau_eps)0,[mean(force_bounds)*ones(4,1);0;0;0], ...
@@ -33,5 +34,9 @@ for i=1:grid_axis(1)
 end
 k = length(Z);
 % Z = reshape(Z,[k*6 1]);
-
+if grid_axis==3*ones(3,1)
+    Z(:,[4 6 10 11 12 13 14 15 16 17 18 22 24]) = Z(:,[6 4 18 17 16 13 14 15 12 11 10 24 22]);
+elseif grid_axis==2*ones(3,1)
+    Z(:, [4 3 5 6 7 8]) = Z(:,[3 4 7 8 6 5]);
+end
 end
