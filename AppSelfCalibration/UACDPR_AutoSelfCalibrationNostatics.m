@@ -16,7 +16,7 @@ MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 disturb=zeros(6,1);
 
 % write trial file name here:
-filename = "sc_27_medium_a";
+filename = "sc_8_medium_a";
 
 % load experimental data
 if ~isfile(strcat(filename,'_parsed.mat'))
@@ -25,23 +25,9 @@ end
 load(strcat(filename,'_parsed.mat'));
 
 
-%choose the calibration poses by hand
-f1 = figure(1);
-plot(st.tensions(1,:));
-hold on
-plot(st.target_tensions(1,:));
-grid on
-legend('\tau_{meas}','\tau_{setpoint}');
-meas_cnt = 1;
-while(1)
-    arg = input("Select measurement pose index: ");
-    if strcmp(arg,"quit")
-        break
-    else
-        meas_idx(meas_cnt) = arg;
-        meas_cnt = meas_cnt+1;
-    end
-end
+% extract calibration data
+k = 27;
+meas_idx = round(linspace(1,length(st.t),k));
 loadcell_meas = st.tensions(:,meas_idx);
 cable_length_meas = st.cable_length(:,meas_idx);
 swivel_meas = st.swivel(:,meas_idx);
@@ -79,16 +65,23 @@ delta_length_meas = cable_length_meas(:,2:end)-cable_length_meas(:,1);
 roll_meas = epsilon_meas(1,2:end);
 pitch_meas = epsilon_meas(2,2:end);
 delta_yaw_meas = epsilon_meas(3,2:end)-epsilon_meas(3,1);
-loadcell_meas(:,1) = [];
 
-X_guess = out.opt_meas_config;
-k = length(X_guess);
+% compute initial guess
+X_guess = zeros(6,k);
+X_guess(:,1) = zeta_0_guess;
+for i = 2:length(loadcell_meas)
+    length_guess = length_0_guess+delta_length_meas(:,i-1);
+    epsilon_guess = [roll_meas(i-1); pitch_meas(i-1); zeta_0_guess(6)] + ...
+        [0;0;delta_yaw_meas(i-1)];
+    X_guess(:,i) = ComputePoseEstimationLengthsInclinometer(length_guess,epsilon_guess, X_guess(:,i-1),MyUACDPR);
+end
 X_guess = reshape(X_guess,[k*n_d 1]);
+
 
 opts = optimoptions('fmincon','FunctionTolerance',1e-10,'OptimalityTolerance',1e-8, ...
     'StepTolerance',1e-10,'UseParallel',true,'MaxFunctionEvaluations',1e+6,'MaxIterations',1e+5);
 tic
-X_sol = fmincon(@(X)CostFunLoadcellLengthSwivelAHRS(MyUACDPR,X,k-1,loadcell_meas,delta_length_meas,...
+X_sol = fmincon(@(X)CostFunLengthSwivelAHRS(MyUACDPR,X,k-1,delta_length_meas,...
         delta_swivel_meas,roll_meas,pitch_meas,delta_yaw_meas,sensor_disturb),X_guess,[],[],[],[],[],[],[],opts);
 self_calib_comp_time=toc;
 
