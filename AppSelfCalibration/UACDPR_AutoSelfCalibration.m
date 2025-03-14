@@ -16,7 +16,7 @@ MyUACDPR= SetOrientType(MyUACDPR,'TaitBryan');
 disturb=zeros(6,1);
 
 % write trial file name here:
-filename = "sc_27_medium_a";
+filename = "sc_27_final";
 
 % load experimental data
 if ~isfile(strcat(filename,'_parsed.mat'))
@@ -30,8 +30,10 @@ f1 = figure(1);
 plot(st.tensions(1,:));
 hold on
 plot(st.target_tensions(1,:));
+plot(st.tensions(2,:));
+plot(st.target_tensions(2,:));
 grid on
-legend('\tau_{meas}','\tau_{setpoint}');
+legend('\tau_{1,meas}','\tau_{1,setpoint}','\tau_{2,meas}','\tau_{2,setpoint}');
 meas_cnt = 1;
 while(1)
     arg = input("Select measurement pose index: ");
@@ -48,7 +50,7 @@ swivel_meas = st.swivel(:,meas_idx);
 epsilon_meas = st.epsilon(:,meas_idx);
 
 % compute initial eq pose guess
-load("sc_control_target_27.mat");
+load("sc_control_target_27_final.mat");
 tau_zero = loadcell_meas(:,1);
 zita_eq_guess = out.opt_meas_config(:,1);
 MyUACDPR = SetPoseAndUpdate0KIN(MyUACDPR,zita_eq_guess);

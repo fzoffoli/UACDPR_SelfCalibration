@@ -6,7 +6,7 @@ clear
 close all
 
 % insert here your filename path, call the two log files with the same name
-filename = "sc_27_medium_a";
+filename = "sc_27_final";
 
 % parsing files
 log_data = parseCableRobotLogFile(strcat(filename,'.log'));
