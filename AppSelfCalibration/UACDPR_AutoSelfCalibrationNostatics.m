@@ -26,12 +26,12 @@ load(strcat(filename,'_parsed.mat'));
 
 
 % extract calibration data
-k = 60;
-meas_idx = round(linspace(1,length(st.t),k));
-loadcell_meas = st.tensions(:,meas_idx);
-cable_length_meas = st.cable_length(:,meas_idx);
-swivel_meas = st.swivel(:,meas_idx);
-epsilon_meas = st.epsilon(:,meas_idx);
+starting_idx = 163;
+sampling_period = 50;
+loadcell_meas = st.tensions(:,starting_idx:sampling_period:end);
+cable_length_meas = st.cable_length(:,starting_idx:sampling_period:end);
+swivel_meas = st.swivel(:,starting_idx:sampling_period:end);
+epsilon_meas = st.epsilon(:,starting_idx:sampling_period:end);
 
 % compute initial eq pose guess
 load("sc_control_target_27_final.mat");
@@ -46,7 +46,7 @@ length_0_guess = sol_zeta_lengths(7:end);
 
 % compute real initial pose (through Gabaldo's pose estimation)
 zeta_0_real = ComputePoseEstimationLengthsInclinometer(cable_length_meas(:,1),epsilon_meas(:,1),zita_eq_guess,MyUACDPR);
-% % uncomment for pose estimation check
+% uncomment for pose estimation check
 % x = zeros(6,length(st.t));
 % for i = 1:length(st.t)
 %     x(:,i) = ComputePoseEstimationLengthsInclinometer(st.cable_length(:,i),st.epsilon(:,i),zita_eq_guess,MyUACDPR);
@@ -67,6 +67,7 @@ pitch_meas = epsilon_meas(2,2:end);
 delta_yaw_meas = epsilon_meas(3,2:end)-epsilon_meas(3,1);
 
 % compute initial guess
+k = length(loadcell_meas);
 X_guess = zeros(6,k);
 X_guess(:,1) = zeta_0_guess;
 for i = 2:length(loadcell_meas)
